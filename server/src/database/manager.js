@@ -8,10 +8,10 @@ class DatabaseManager {
     this.initialized = false;
   }
 
-  async connect() {
+  async connect(connectionStringOverride) {
     if (this.pool) return this.pool;
 
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString = connectionStringOverride || process.env.DATABASE_URL;
     if (!connectionString) {
       throw new Error('DATABASE_URL is required in .env');
     }
@@ -30,13 +30,13 @@ class DatabaseManager {
     return this.pool;
   }
 
-  async initializeSchema() {
+  async initializeSchema(connectionStringOverride) {
     if (this.initialized) {
       console.log('Schema already initialized');
       return;
     }
 
-    await this.connect();
+    await this.connect(connectionStringOverride);
 
     console.log('Initializing NormalMemory schema...');
 
