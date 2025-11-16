@@ -1,4 +1,6 @@
 import databaseManager from '../database/manager.js'
+import { db } from '../config/database.js'
+import { userDatabases } from '../config/schema.js'
 
 export const initSchema = async (req, res) => {
   const { databaseUrl } = req.body || {}
@@ -10,6 +12,26 @@ export const initSchema = async (req, res) => {
       return res.status(200).json({ message: 'Schema already initialized', initialized: true })
     }
     await databaseManager.initializeSchema(databaseUrl)
+
+    if (req.user?.id && databaseUrl) {
+      try {
+        await db.insert(userDatabases).values({
+          userId: req.user.id,
+          databaseUrl,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: [userDatabases.userId],
+          set: {
+            databaseUrl,
+            updatedAt: new Date(),
+            isActive: true,
+          },
+        })
+      } catch (e) {
+        console.error('Failed to upsert user database mapping:', e)
+      }
+    }
     return res.status(200).json({ message: 'Schema initialized', initialized: true })
   } catch (error) {
     console.error(error)
