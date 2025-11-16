@@ -6,8 +6,11 @@ export const initSchema = async (req, res) => {
     return res.status(400).json({ message: 'databaseUrl is required' })
   }
   try {
+    if (databaseManager.initialized) {
+      return res.status(200).json({ message: 'Schema already initialized', initialized: true })
+    }
     await databaseManager.initializeSchema(databaseUrl)
-    return res.status(200).json({ message: 'Schema initialized' })
+    return res.status(200).json({ message: 'Schema initialized', initialized: true })
   } catch (error) {
     console.error(error)
     return res.status(500).json({ message: 'Failed to initialize schema' })
